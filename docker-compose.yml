@@ -1,4 +1,15 @@
 services:
+  db:
+    image: postgres:16
+    environment:
+      - POSTGRES_USER=quiz
+      - POSTGRES_PASSWORD=quizpass
+      - POSTGRES_DB=quizdb
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
   backend:
     build: ./backend
     ports:
@@ -7,6 +18,9 @@ services:
       - ./backend:/app
     environment:
       - FLASK_ENV=development
+      - DATABASE_URL=postgresql://quiz:quizpass@db:5432/quizdb
+    depends_on:
+      - db
 
   frontend:
     build: ./frontend
@@ -19,3 +33,6 @@ services:
       - backend
     stdin_open: true
     tty: true
+
+volumes:
+  pgdata:
