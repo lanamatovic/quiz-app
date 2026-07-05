@@ -1,27 +1,23 @@
 import os
-from flask import Flask
+import connexion
 from flask_cors import CORS
-from models import db
-from routes import api_bp
+import database
 
-app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = os.environ['DATABASE_URL']
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.config['SECRET_KEY'] = 'your-secret-key-here'
+app = connexion.FlaskApp(__name__, specification_dir=".")
+app.app.config["SQLALCHEMY_DATABASE_URI"] = os.environ["DATABASE_URL"]
+app.app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
-# Иницијализација базе података
-db.init_app(app)
-
-# Омогући CORS за комуникацију са React
-CORS(app)
-
-# Региструј руте
-app.register_blueprint(api_bp, url_prefix='/api')
-
-# Креирај табеле у бази података
-with app.app_context():
-    db.create_all()
+# Inicijalizacija baze podataka
+database.db.init_app(app.app)
+with app.app.app_context():
+    database.db.create_all()
     print("Database tables created!")
 
-if __name__ == '__main__':
-    app.run(host='0.0.0.0', debug=True, port=5000)
+# Omogući CORS za komunikaciju sa React-om
+CORS(app.app)
+
+# Registruje rute na osnovu OpenAPI specifikacije i validira zahteve prema njoj
+app.add_api("quizapi.yaml", arguments={"title": "QuizAPI"}, strict_validation=True)
+
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=5000)

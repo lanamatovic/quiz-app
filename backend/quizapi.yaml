@@ -1,0 +1,521 @@
+openapi: 3.0.0
+info:
+  title: QuizAPI
+  version: 1.0.0
+servers:
+  - url: http://localhost:5000/api
+paths:
+  /quizzes:
+    get:
+      tags:
+        - "Quizzes"
+      description: Vraća sve kvizove, opciono filtrirane po kategoriji
+      operationId: api.getQuizzes
+      parameters:
+        - in: query
+          name: category
+          description: Naziv kategorije za filtriranje
+          schema:
+            type: string
+          required: false
+      responses:
+        '200':
+          description: Lista kvizova
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Quiz"
+    post:
+      description: Kreira novi kviz
+      operationId: api.createQuiz
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Quiz"
+      responses:
+        '201':
+          description: Uspešno kreiran kviz
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Quiz"
+
+  /quizzes/{quiz_id}:
+    get:
+      description: Vraća jedan kviz po id-u
+      operationId: api.getQuiz
+      parameters:
+        - in: path
+          name: quiz_id
+          schema:
+            type: integer
+          required: true
+      responses:
+        '200':
+          description: Kviz
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Quiz"
+        '404':
+          description: Kviz nije pronađen
+    put:
+      description: Ažurira kviz
+      operationId: api.updateQuiz
+      parameters:
+        - in: path
+          name: quiz_id
+          schema:
+            type: integer
+          required: true
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Quiz"
+      responses:
+        '200':
+          description: Ažuriran kviz
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Quiz"
+        '404':
+          description: Kviz nije pronađen
+    delete:
+      description: Briše kviz
+      operationId: api.deleteQuiz
+      parameters:
+        - in: path
+          name: quiz_id
+          schema:
+            type: integer
+          required: true
+      responses:
+        '200':
+          description: Kviz obrisan
+        '404':
+          description: Kviz nije pronađen
+
+  /quizzes/{quiz_id}/questions:
+    get:
+      description: Vraća sva pitanja za kviz
+      operationId: api.getQuestions
+      parameters:
+        - in: path
+          name: quiz_id
+          schema:
+            type: integer
+          required: true
+        - in: query
+          name: include_answers
+          schema:
+            type: boolean
+            default: false
+          required: false
+      responses:
+        '200':
+          description: Lista pitanja
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Question"
+
+  /questions:
+    post:
+      description: Kreira novo pitanje
+      operationId: api.createQuestion
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Question"
+      responses:
+        '201':
+          description: Uspešno kreirano pitanje
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Question"
+
+  /questions/{question_id}:
+    put:
+      description: Ažurira pitanje
+      operationId: api.updateQuestion
+      parameters:
+        - in: path
+          name: question_id
+          schema:
+            type: integer
+          required: true
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Question"
+      responses:
+        '200':
+          description: Ažurirano pitanje
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Question"
+        '404':
+          description: Pitanje nije pronađeno
+    delete:
+      description: Briše pitanje
+      operationId: api.deleteQuestion
+      parameters:
+        - in: path
+          name: question_id
+          schema:
+            type: integer
+          required: true
+      responses:
+        '200':
+          description: Pitanje obrisano
+        '404':
+          description: Pitanje nije pronađeno
+
+  /questions/{question_id}/check:
+    post:
+      description: Proverava da li je odgovor tačan
+      operationId: api.checkAnswer
+      parameters:
+        - in: path
+          name: question_id
+          schema:
+            type: integer
+          required: true
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                answer:
+                  type: string
+                  example: B
+              required:
+                - answer
+      responses:
+        '200':
+          description: Rezultat provere
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  correct:
+                    type: boolean
+                  correct_answer:
+                    type: string
+                  points:
+                    type: integer
+        '404':
+          description: Pitanje nije pronađeno
+
+  /results:
+    post:
+      description: Čuva rezultat
+      operationId: api.saveResult
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Result"
+      responses:
+        '201':
+          description: Sačuvan rezultat
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Result"
+
+  /results/quiz/{quiz_id}:
+    get:
+      description: Vraća sve rezultate za kviz
+      operationId: api.getQuizResults
+      parameters:
+        - in: path
+          name: quiz_id
+          schema:
+            type: integer
+          required: true
+      responses:
+        '200':
+          description: Lista rezultata
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Result"
+
+  /leaderboard:
+    get:
+      description: Vraća top rezultate
+      operationId: api.getLeaderboard
+      parameters:
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            default: 10
+          required: false
+      responses:
+        '200':
+          description: Lista rezultata
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Result"
+
+  /leaderboard/quiz/{quiz_id}:
+    get:
+      description: Vraća leaderboard za specifičan kviz
+      operationId: api.getQuizLeaderboard
+      parameters:
+        - in: path
+          name: quiz_id
+          schema:
+            type: integer
+          required: true
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            default: 10
+          required: false
+      responses:
+        '200':
+          description: Lista rezultata
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Result"
+
+  /categories:
+    get:
+      description: Vraća sve kategorije
+      operationId: api.getCategories
+      responses:
+        '200':
+          description: Lista kategorija
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    name:
+                      type: string
+    post:
+      description: Kreira novu kategoriju
+      operationId: api.createCategory
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Category"
+      responses:
+        '201':
+          description: Uspešno kreirana kategorija
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Category"
+        '400':
+          description: Kategorija već postoji
+
+  /stats/quiz/{quiz_id}:
+    get:
+      description: Vraća statistiku za kviz
+      operationId: api.getQuizStats
+      parameters:
+        - in: path
+          name: quiz_id
+          schema:
+            type: integer
+          required: true
+      responses:
+        '200':
+          description: Statistika kviza
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  quiz_title:
+                    type: string
+                  total_attempts:
+                    type: integer
+                  average_score:
+                    type: number
+                  highest_score:
+                    type: integer
+                  lowest_score:
+                    type: integer
+        '404':
+          description: Kviz nije pronađen
+
+  /seed:
+    post:
+      description: Dodaje test podatke u bazu
+      operationId: api.seedDatabase
+      responses:
+        '201':
+          description: Baza popunjena test podacima
+        '400':
+          description: Baza već ima podatke
+
+components:
+  schemas:
+    Category:
+      type: object
+      x-tablename: category
+      properties:
+        id:
+          description: Identifikacioni broj (interni ključ)
+          type: integer
+          x-primary-key: true
+          x-autoincrement: true
+          example: 1
+        name:
+          description: Naziv kategorije
+          type: string
+          example: Istorija
+      required:
+        - name
+
+    Quiz:
+      type: object
+      x-tablename: quiz
+      properties:
+        id:
+          description: Identifikacioni broj (interni ključ)
+          type: integer
+          x-primary-key: true
+          x-autoincrement: true
+          example: 1
+        title:
+          description: Naslov kviza
+          type: string
+          example: Opšta kultura
+        category:
+          description: Kategorija kviza
+          type: string
+          example: Obrazovanje
+        description:
+          description: Opis kviza
+          type: string
+          example: Test opšteg znanja
+        created_at:
+          description: Vreme kreiranja kviza
+          type: string
+          format: date-time
+          example: 2025-08-14T09:15:00Z
+      required:
+        - title
+        - category
+
+    Question:
+      type: object
+      x-tablename: question
+      properties:
+        id:
+          description: Identifikacioni broj (interni ključ)
+          type: integer
+          x-primary-key: true
+          x-autoincrement: true
+          example: 1
+        quiz_id:
+          description: Identifikator kviza kom pitanje pripada
+          type: integer
+          x-foreign-key: quiz.id
+          example: 1
+        question_text:
+          description: Tekst pitanja
+          type: string
+          example: Koji je glavni grad Francuske?
+        option_a:
+          description: Ponuđeni odgovor A
+          type: string
+          example: London
+        option_b:
+          description: Ponuđeni odgovor B
+          type: string
+          example: Pariz
+        option_c:
+          description: Ponuđeni odgovor C
+          type: string
+          example: Berlin
+        option_d:
+          description: Ponuđeni odgovor D
+          type: string
+          example: Madrid
+        correct_answer:
+          description: Tačan odgovor (A, B, C ili D)
+          type: string
+          example: B
+        points:
+          description: Broj poena za tačan odgovor
+          type: integer
+          default: 10
+          example: 10
+      required:
+        - quiz_id
+        - question_text
+        - option_a
+        - option_b
+        - option_c
+        - option_d
+        - correct_answer
+
+    Result:
+      type: object
+      x-tablename: result
+      properties:
+        id:
+          description: Identifikacioni broj (interni ključ)
+          type: integer
+          x-primary-key: true
+          x-autoincrement: true
+          example: 1
+        quiz_id:
+          description: Identifikator kviza za koji je rezultat vezan
+          type: integer
+          x-foreign-key: quiz.id
+          example: 1
+        player_name:
+          description: Ime igrača
+          type: string
+          example: Tea
+        score:
+          description: Osvojeni bodovi
+          type: integer
+          example: 30
+        total_questions:
+          description: Ukupan broj pitanja u kvizu
+          type: integer
+          example: 3
+        completed_at:
+          description: Vreme završetka kviza
+          type: string
+          format: date-time
+          example: 2025-08-14T09:15:00Z
+      required:
+        - quiz_id
+        - player_name
+        - score
+        - total_questions
